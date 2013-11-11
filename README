@@ -1,0 +1,1 @@
+ROS interface for querying the learnt MLN model. Prac must be set up on local pc in order for the script to work.
