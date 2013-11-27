@@ -2,6 +2,7 @@ from mln_robosherlock_msgs.srv import *
 from mln.MarkovLogicNetwork import MLN, readMLNFromFile
 from mln.database import Database
 from wcsp.converter import WCSPConverter
+from time import time
 
 import rospy
 import sys, getopt
@@ -9,19 +10,25 @@ import sys, getopt
 class MLNQueryService:
   model_filename="" 
   def __init__(self,filename):
-      self.model_filename=filename
+    self.model_filename=filename
+    self.mln = readMLNFromFile(self.model_filename)
 
 
   def handle_query(self,req):
-    mln = readMLNFromFile(self.model_filename)
-    db=Database(mln)
+    start =time()
+    #db=self.db.duplicate()
+    db=Database(self.mln)
     for atom in req.mln_atoms:
-      print "Atom "+atom.mln_atom
+#     print "Atom "+atom.mln_atom
       db.addGroundAtom(atom.mln_atom)
-    
-    mrf = mln.groundMRF(db)
+#    print "first_for took %f time" %(time()-start)
+    mrf = self.mln.groundMRF(db)
+#    print "grounding took %f time" %(time()-start)
     wcsp = WCSPConverter(mrf)
+#    print "some conversion took %f time" %(time()-start)
     results = wcsp.getMostProbableWorldDB()
+#    print "getting result took  %f time" %(time()-start)
+    
     for s in results.query("object(?cluster,?object)"):
         return MLNQueryResponse(s["?object"])
     return MLNQueryResponse("Empty")
