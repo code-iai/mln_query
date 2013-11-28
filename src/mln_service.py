@@ -19,7 +19,7 @@ class MLNQueryService:
     #db=self.db.duplicate()
     db=Database(self.mln)
     for atom in req.mln_atoms:
-#     print "Atom "+atom.mln_atom
+      print "Atom "+atom.mln_atom
       db.addGroundAtom(atom.mln_atom)
 #    print "first_for took %f time" %(time()-start)
     mrf = self.mln.groundMRF(db)
@@ -28,10 +28,11 @@ class MLNQueryService:
 #    print "some conversion took %f time" %(time()-start)
     results = wcsp.getMostProbableWorldDB()
 #    print "getting result took  %f time" %(time()-start)
-    
+    res_list = [] 
     for s in results.query("object(?cluster,?object)"):
-        return MLNQueryResponse(s["?object"])
-    return MLNQueryResponse("Empty")
+         res_list.append(s["?object"])
+    print res_list
+    return MLNQueryResponse(res_list)
 
 
 def get_object_identity(argv):
