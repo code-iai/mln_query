@@ -4,40 +4,46 @@ from mln.database import Database
 from wcsp.converter import WCSPConverter
 from time import time
 
+from prac.core import PRAC
+from prac.inference import *
+
 import rospy
 import sys, getopt
 
+
 class MLNQueryService:
-  model_filename="" 
+  model_filename=""
   def __init__(self,filename):
     self.model_filename=filename
     self.mln = readMLNFromFile(self.model_filename)
-
+    self.prac =PRAC()
 
   def handle_query(self,req):
     start =time()
-    #db=self.db.duplicate()
     db=Database(self.mln)
+    infer = PRACInference(self.prac, [])
+    inferenceStep = PRACInferenceStep(infer, self)
+    inferenceStep.output_dbs= [db]
+    infer.inference_steps.append(inferenceStep)
+    
     for atom in req.mln_atoms:
       print "Atom "+atom.mln_atom
       db.addGroundAtom(atom.mln_atom)
-#    print "first_for took %f time" %(time()-start)
-    mrf = self.mln.groundMRF(db)
-#    print "grounding took %f time" %(time()-start)
-    wcsp = WCSPConverter(mrf)
-#    print "some conversion took %f time" %(time()-start)
-    results = wcsp.getMostProbableWorldDB()
-#    print "getting result took  %f time" %(time()-start)
-    res_list = [] 
-    for s in results.query("object(?cluster,?object)"):
-         res_list.append(s["?object"])
-    print res_list
+    objRecog = self.prac.getModuleByName('obj_recognition')
+
+    self.prac.run(infer,objRecog,mln=self.mln)
+    step = infer.inference_steps[-1]
+    res_list = []
+    for db in step.output_dbs:	
+      for s in db.query("object(?cluster,?object)"):
+        res_list.append(s["?object"])
+      print res_list
     return MLNQueryResponse(res_list)
 
 
 def get_object_identity(argv):
     filename=""
-    try: 
+    try:
         opts, args = getopt.getopt(argv,"hi:0",["ifile="])
     except getopt.GetoptError:
         print 'test.py -i <inputfile>'
@@ -49,12 +55,12 @@ def get_object_identity(argv):
       elif opt in ("-i","--ifile"):
         filename = arg
     if filename == '':
-      filename ="data/run_0.mln"
+      filename ="data/objInf_trained_natLan_CONFI.mln"
     m = MLNQueryService(filename)
-  
+
     print 'Input Files is:',filename
     rospy.init_node('get_object_identity')
-    s = rospy.Service('query_mln', MLNQuery, m.handle_query)
+    s = rospy.Service('query_prac', MLNQuery, m.handle_query)
     print "Ready to recieve requests"
     rospy.spin()
 

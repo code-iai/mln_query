@@ -122,10 +122,11 @@ include_directories(
 
 ## Mark executable scripts (Python etc.) for installation
 ## in contrast to setup.py, you can choose the destination
-#install(PROGRAMS
-#   src/mln_service.py
-#   DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-# )
+install(PROGRAMS
+   src/mln_service.py
+   prac/service.py
+   DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+ )
 
 ## Mark executables and/or libraries for installation
 # install(TARGETS mln_query mln_query_node
