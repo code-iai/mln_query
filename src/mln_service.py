@@ -8,7 +8,7 @@ import rospy
 import sys, getopt
 
 class MLNQueryService:
-  model_filename="" 
+  model_filename=""
   def __init__(self,filename):
     self.model_filename=filename
     self.mln = readMLNFromFile(self.model_filename)
@@ -28,16 +28,18 @@ class MLNQueryService:
 #    print "some conversion took %f time" %(time()-start)
     results = wcsp.getMostProbableWorldDB()
 #    print "getting result took  %f time" %(time()-start)
-    res_list = [] 
+    res_list = []
+    index_list = []
     for s in results.query("object(?cluster,?object)"):
          res_list.append(s["?object"])
+         index_list.appaned(int(s["?cluster"][-1])
     print res_list
     return MLNQueryResponse(res_list)
 
 
 def get_object_identity(argv):
     filename=""
-    try: 
+    try:
         opts, args = getopt.getopt(argv,"hi:0",["ifile="])
     except getopt.GetoptError:
         print 'test.py -i <inputfile>'
@@ -51,7 +53,7 @@ def get_object_identity(argv):
     if filename == '':
       filename ="data/run_0.mln"
     m = MLNQueryService(filename)
-  
+
     print 'Input Files is:',filename
     rospy.init_node('get_object_identity')
     s = rospy.Service('query_mln', MLNQuery, m.handle_query)
