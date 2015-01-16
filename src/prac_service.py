@@ -34,11 +34,14 @@ class MLNQueryService:
     self.prac.run(infer,objRecog,mln=self.mln)
     step = infer.inference_steps[-1]
     res_list = []
+    index_list = []
     for db in step.output_dbs:	
       for s in db.query("object(?cluster,?object)"):
+        index_list.append(int(s["?cluster"][-1]))
         res_list.append(s["?object"])
       print res_list
-    return MLNQueryResponse(res_list)
+      print index_list
+    return MLNQueryResponse(index_list,res_list)
 
 
 def get_object_identity(argv):
@@ -55,7 +58,7 @@ def get_object_identity(argv):
       elif opt in ("-i","--ifile"):
         filename = arg
     if filename == '':
-      filename ="data/objInf_trained_natLan_CONFI.mln"
+      filename ="data/final.mln"
     m = MLNQueryService(filename)
 
     print 'Input Files is:',filename
